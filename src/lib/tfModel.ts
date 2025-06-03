@@ -2,12 +2,12 @@ import * as tf from '@tensorflow/tfjs';
 
 // Interface untuk hasil prediksi
 interface PredictionResult {
-  calories: number; // numeric
-  protein: number; // float
-  carbohydrates: number; // float
-  fat: number; // float
-  fibre: number; // float
-  nat: number; // float
+  calories: number;
+  protein: number;
+  carbohydrates: number;
+  fat: number;
+  fibre: number;
+  nat: number;
   foodName?: string;
   confidence?: number;
 }
@@ -56,7 +56,7 @@ export const preprocessImage = async (imageDataUrl: string, targetSize: [number,
         
         // Convert ke tensor dan preprocess
         const tensor = tf.browser.fromPixels(canvas)
-          .resizeBilinear([224, 224]) // Resize ke ukuran yang diharapkan model
+          .resizeBilinear([224, 224])
           .toFloat()
           .expandDims(0)
           .div(255.0); // Normalize ke [0, 1]
@@ -74,6 +74,34 @@ export const preprocessImage = async (imageDataUrl: string, targetSize: [number,
     
     img.src = imageDataUrl;
   });
+};
+
+// Helper function untuk mendapatkan nama makanan
+const getFoodName = async (predictionData: Float32Array | Int32Array | Uint8Array): Promise<string> => {
+  try {
+    // Ambil label dari file labels.json
+    const response = await fetch('/labels.json');
+    if (!response.ok) {
+      throw new Error('Failed to load labels');
+    }
+    
+    const labels = await response.json();
+    
+    // Temukan kelas dengan probabilitas tertinggi
+    const maxIndex = Array.from(predictionData).indexOf(Math.max(...Array.from(predictionData)));
+    console.log('Highest probability at index:', maxIndex, 'with value:', Math.max(...Array.from(predictionData)));
+    
+    // Gunakan label dari file jika tersedia
+    if (Array.isArray(labels) && labels.length > 0 && maxIndex < labels.length) {
+      console.log('Selected food:', labels[maxIndex]);
+      return labels[maxIndex];
+    } else {
+      return 'Makanan Tidak Dikenal';
+    }
+  } catch (error) {
+    console.error('Error loading labels:', error);
+    return 'Makanan Tidak Dikenal';
+  }
 };
 
 // Prediksi nutrisi dari gambar
@@ -95,20 +123,66 @@ export const predictNutrition = async (model: tf.GraphModel, imageDataUrl: strin
     // Cleanup tensors
     tf.dispose([preprocessedImage, prediction]);
     
-    // Mapping hasil prediksi ke struktur nutrisi (for 100g portion)
-    // If prediction values are too small, use reasonable defaults
+    // Tambahkan nama makanan berdasarkan klasifikasi
+    const foodName = await getFoodName(predictionData);
+    
+    // Nilai nutrisi default
+    let calories = 250;
+    let protein = 15;
+    let carbohydrates = 40;
+    let fat = 10;
+    let fibre = 5;
+    let nat = 300;
+    
+    // Sesuaikan nilai nutrisi berdasarkan jenis makanan
+    if (foodName.toLowerCase().includes('telur')) {
+      calories = 150;
+      protein = 13;
+      carbohydrates = 1;
+      fat = 11;
+      fibre = 0;
+      nat = 124;
+    } else if (foodName.toLowerCase().includes('nasi goreng')) {
+      calories = 267;
+      protein = 5.7;
+      carbohydrates = 45.6;
+      fat = 6.8;
+      fibre = 1.2;
+      nat = 396;
+    } else if (foodName.toLowerCase().includes('ayam')) {
+      calories = 165;
+      protein = 31;
+      carbohydrates = 0;
+      fat = 3.6;
+      fibre = 0;
+      nat = 74;
+    } else if (foodName.toLowerCase().includes('bakso')) {
+      calories = 232;
+      protein = 14.5;
+      carbohydrates = 13.5;
+      fat = 14.6;
+      fibre = 0.8;
+      nat = 592;
+    } else if (foodName.toLowerCase().includes('sayur')) {
+      calories = 65;
+      protein = 3;
+      carbohydrates = 11;
+      fat = 0.5;
+      fibre = 4;
+      nat = 15;
+    }
+    
+    // Mapping hasil prediksi ke struktur nutrisi
     const result: PredictionResult = {
-      calories: Math.max(250, Math.round(predictionData[0] * 500)), // numeric - rounded to integer
-      protein: Math.max(15, parseFloat((predictionData[1] * 50).toFixed(1))), // float - 1 decimal place
-      carbohydrates: Math.max(40, parseFloat((predictionData[2] * 100).toFixed(1))), // float - 1 decimal place
-      fat: Math.max(10, parseFloat((predictionData[3] * 30).toFixed(1))), // float - 1 decimal place
-      fibre: Math.max(5, parseFloat((predictionData[4] * 20).toFixed(1))), // float - 1 decimal place
-      nat: Math.max(300, parseFloat((predictionData[5] * 40).toFixed(1))), // float - 1 decimal place
+      calories: calories,
+      protein: protein,
+      carbohydrates: carbohydrates,
+      fat: fat,
+      fibre: fibre,
+      nat: nat,
+      foodName: foodName,
       confidence: Math.max(0.7, Math.max(...Array.from(predictionData)))
     };
-    
-    // Tambahkan nama makanan berdasarkan klasifikasi
-    result.foodName = getFoodName(predictionData);
     
     console.log('Prediction result:', result);
     return result;
@@ -116,22 +190,6 @@ export const predictNutrition = async (model: tf.GraphModel, imageDataUrl: strin
     console.error('Error during prediction:', error);
     throw new Error(`Prediction failed: ${error}`);
   }
-};
-
-// Helper function untuk mendapatkan nama makanan
-const getFoodName = (predictionData: Float32Array | Int32Array | Uint8Array): string => {
-  // Daftar makanan yang dikenali model
-  const foodClasses = [
-    'Nasi Putih', 'Nasi Goreng', 'Mie Goreng', 'Ayam Goreng', 
-    'Rendang', 'Sate Ayam', 'Gado-gado', 'Soto Ayam',
-    'Bakso', 'Nasi Uduk', 'Sop Ayam', 'Pecel Lele',
-    'Sayur Asem', 'Cap Cay', 'Tempe Goreng', 'Tahu Goreng'
-  ];
-  
-  // Temukan kelas dengan probabilitas tertinggi
-  const maxIndex = Array.from(predictionData).indexOf(Math.max(...Array.from(predictionData)));
-  
-  return foodClasses[maxIndex % foodClasses.length] || 'Makanan Tidak Dikenal';
 };
 
 // Helper function untuk warmup model
