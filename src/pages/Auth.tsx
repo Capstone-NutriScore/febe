@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { Eye, EyeOff, Loader2, Scan } from 'lucide-react';
+import { Eye, EyeOff, Loader2 } from 'lucide-react';
 
 const Auth = () => {
   const [email, setEmail] = useState('');
@@ -17,6 +17,7 @@ const Auth = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [isSignUp, setIsSignUp] = useState(false);
 
+  // Handle SignIn (Login)
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
@@ -30,7 +31,7 @@ const Auth = () => {
       if (error) throw error;
 
       toast.success('Berhasil login!');
-      window.location.href = '/';
+      window.location.href = '/intro';  // Redirect to intro page after login
     } catch (error: any) {
       console.error('Error signing in:', error);
       toast.error(error.message || 'Gagal login');
@@ -38,6 +39,7 @@ const Auth = () => {
     }
   };
 
+  // Handle SignUp (Registration)
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -59,10 +61,8 @@ const Auth = () => {
     setIsLoading(true);
 
     try {
-      // Buat profil terlebih dahulu dengan ID sementara
       const tempId = 'temp_' + Date.now();
       
-      // Simpan userId di localStorage untuk digunakan di halaman pengisian profil
       localStorage.setItem('tempUserId', tempId);
       localStorage.setItem('tempUserEmail', email);
       localStorage.setItem('tempUserPassword', password);
@@ -71,9 +71,8 @@ const Auth = () => {
       
       toast.success('Silakan lengkapi profil Anda.');
       
-      // Redirect ke halaman pengisian profil khusus
       setTimeout(() => {
-        window.location.href = '/profile-setup';
+        window.location.href = '/profile-setup';  // Redirect to profile setup after sign-up
       }, 1000);
     } catch (error: any) {
       console.error('Error signing up:', error);
@@ -83,43 +82,44 @@ const Auth = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-purple-50 flex items-center justify-center p-4">
-      <Card className="w-full max-w-md shadow-2xl border-0 bg-white/90 backdrop-blur-sm">
+    <div className="min-h-screen bg-gradient-to-br from-cream-50 via-cream-100 to-green-50 flex items-center justify-center p-4">
+      <Card className="w-full max-w-md shadow-2xl border-2 border-green-100 bg-white/90 backdrop-blur-sm">
         <CardHeader className="text-center space-y-4">
           <div className="flex items-center justify-center gap-3">
-            <div className="p-3 bg-gradient-to-r from-green-500 to-blue-500 rounded-full">
-              <Scan className="w-8 h-8 text-white" />
-            </div>
+            <img src="/logo_nutriscore.jpeg" alt="NutriScore Logo" className="w-24 h-24 rounded-full" />
           </div>
-          <CardTitle className="text-3xl font-bold bg-gradient-to-r from-green-600 to-blue-600 bg-clip-text text-transparent">
-            NutriScore
+          <CardTitle className="text-3xl font-bold text-transparent">
+            {/* Removed NutriScore Text */}
           </CardTitle>
-          <p className="text-gray-600">
+          <p className="text-green-700">
             Analisis nutrisi makanan dengan AI
           </p>
         </CardHeader>
-        
+
         <CardContent>
           <Tabs value={isSignUp ? 'signup' : 'signin'} className="w-full">
-            <TabsList className="grid w-full grid-cols-2 mb-6">
-              <TabsTrigger 
-                value="signin" 
+            <TabsList className="grid w-full grid-cols-2 mb-6 bg-cream-100">
+              <TabsTrigger
+                value="signin"
                 onClick={() => setIsSignUp(false)}
+                className="data-[state=active]:bg-green-500 data-[state=active]:text-cream-50"
               >
                 Login
               </TabsTrigger>
-              <TabsTrigger 
-                value="signup" 
+              <TabsTrigger
+                value="signup"
                 onClick={() => setIsSignUp(true)}
+                className="data-[state=active]:bg-green-500 data-[state=active]:text-cream-50"
               >
                 Daftar
               </TabsTrigger>
             </TabsList>
 
+            {/* Sign In */}
             <TabsContent value="signin">
               <form onSubmit={handleSignIn} className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="email">Email</Label>
+                  <Label htmlFor="email" className="text-green-800">Email</Label>
                   <Input
                     id="email"
                     type="email"
@@ -127,11 +127,12 @@ const Auth = () => {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
+                    className="bg-cream-50 border-green-100 focus:border-green-300 focus:ring-green-200"
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="password">Password</Label>
+                  <Label htmlFor="password" className="text-green-800">Password</Label>
                   <div className="relative">
                     <Input
                       id="password"
@@ -141,26 +142,23 @@ const Auth = () => {
                       onChange={(e) => setPassword(e.target.value)}
                       required
                       minLength={6}
+                      className="bg-cream-50 border-green-100 focus:border-green-300 focus:ring-green-200"
                     />
                     <Button
                       type="button"
                       variant="ghost"
                       size="sm"
-                      className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                      className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent text-green-600"
                       onClick={() => setShowPassword(!showPassword)}
                     >
-                      {showPassword ? (
-                        <EyeOff className="h-4 w-4" />
-                      ) : (
-                        <Eye className="h-4 w-4" />
-                      )}
+                      {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                     </Button>
                   </div>
                 </div>
 
                 <Button
                   type="submit"
-                  className="w-full bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600"
+                  className="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-cream-50"
                   disabled={isLoading}
                 >
                   {isLoading ? (
@@ -175,10 +173,11 @@ const Auth = () => {
               </form>
             </TabsContent>
 
+            {/* Sign Up */}
             <TabsContent value="signup">
               <form onSubmit={handleSignUp} className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="signup-name">Nama Lengkap</Label>
+                  <Label htmlFor="signup-name" className="text-green-800">Nama Lengkap</Label>
                   <Input
                     id="signup-name"
                     type="text"
@@ -186,11 +185,12 @@ const Auth = () => {
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     required
+                    className="bg-cream-50 border-green-100 focus:border-green-300 focus:ring-green-200"
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="signup-email">Email</Label>
+                  <Label htmlFor="signup-email" className="text-green-800">Email</Label>
                   <Input
                     id="signup-email"
                     type="email"
@@ -198,11 +198,12 @@ const Auth = () => {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
+                    className="bg-cream-50 border-green-100 focus:border-green-300 focus:ring-green-200"
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="signup-password">Password</Label>
+                  <Label htmlFor="signup-password" className="text-green-800">Password</Label>
                   <div className="relative">
                     <Input
                       id="signup-password"
@@ -212,25 +213,22 @@ const Auth = () => {
                       onChange={(e) => setPassword(e.target.value)}
                       required
                       minLength={6}
+                      className="bg-cream-50 border-green-100 focus:border-green-300 focus:ring-green-200"
                     />
                     <Button
                       type="button"
                       variant="ghost"
                       size="sm"
-                      className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                      className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent text-green-600"
                       onClick={() => setShowPassword(!showPassword)}
                     >
-                      {showPassword ? (
-                        <EyeOff className="h-4 w-4" />
-                      ) : (
-                        <Eye className="h-4 w-4" />
-                      )}
+                      {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                     </Button>
                   </div>
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="confirm-password">Konfirmasi Password</Label>
+                  <Label htmlFor="confirm-password" className="text-green-800">Konfirmasi Password</Label>
                   <Input
                     id="confirm-password"
                     type="password"
@@ -239,12 +237,13 @@ const Auth = () => {
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     required
                     minLength={6}
+                    className="bg-cream-50 border-green-100 focus:border-green-300 focus:ring-green-200"
                   />
                 </div>
 
                 <Button
                   type="submit"
-                  className="w-full bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600"
+                  className="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-cream-50"
                   disabled={isLoading}
                 >
                   {isLoading ? (

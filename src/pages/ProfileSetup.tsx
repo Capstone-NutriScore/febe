@@ -243,11 +243,12 @@ const ProfileSetup = () => {
               <Button 
                 onClick={saveProfile} 
                 disabled={isLoading}
-                className="w-full bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600"
+                className="w-full bg-gradient-to-r from-green-700 to-green-800 hover:from-green-800 hover:to-green-900"
               >
                 <Save className="w-4 h-4 mr-2" />
                 {isLoading ? 'Menyimpan...' : 'Simpan Profil & Lanjut ke Login'}
               </Button>
+
             </div>
           </div>
         </CardContent>
